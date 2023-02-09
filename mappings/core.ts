@@ -186,12 +186,12 @@ export function handleSync(event: Sync): void {
   bundle.bnbPrice = getBnbPriceInUSD();
   bundle.save();
 
-  let t0DerivedBNB = findBnbPerToken(token0 as Token);
+  let t0DerivedBNB = findBnbPerToken(token0 as Token, event.block.number);
   token0.derivedBNB = t0DerivedBNB;
   token0.derivedUSD = t0DerivedBNB.times(bundle.bnbPrice);
   token0.save();
 
-  let t1DerivedBNB = findBnbPerToken(token1 as Token);
+  let t1DerivedBNB = findBnbPerToken(token1 as Token, event.block.number);
   token1.derivedBNB = t1DerivedBNB;
   token1.derivedUSD = t1DerivedBNB.times(bundle.bnbPrice);
   token1.save();

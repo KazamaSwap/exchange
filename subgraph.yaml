@@ -8,9 +8,9 @@ dataSources:
     name: Factory
     network: chapel
     source:
-      address: '0xb7926c0430afb07aa7defde6da862ae0bde767bc'
+      address: '0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc'
       abi: Factory
-      startBlock: 7142050
+      startBlock: 1585923
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

@@ -1,11 +1,11 @@
 /* eslint-disable prefer-const */
-import { BigDecimal, Address } from "@graphprotocol/graph-ts/index";
+import { BigDecimal, Address, log, BigInt } from "@graphprotocol/graph-ts/index";
 import { Pair, Token, Bundle } from "../generated/schema";
 import { ZERO_BD, factoryContract, ADDRESS_ZERO, ONE_BD } from "./utils";
 
 let WBNB_ADDRESS = "0xae13d989dac2f0debff460ac112a837c89baa7cd";
-let BUSD_WBNB_PAIR = "0xe0e92035077c39594793e61802a350347c320cf2"; // created block 7283522
-let USDT_WBNB_PAIR = "0xf855e52ecc8b3b795ac289f85f6fd7a99883492b"; // created block 7142734
+let BUSD_WBNB_PAIR = "0xe0e92035077c39594793e61802a350347c320cf2"; // created block 589414
+let USDT_WBNB_PAIR = "0xf855e52ecc8b3b795ac289f85f6fd7a99883492b"; // created block 648115
 
 export function getBnbPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
@@ -16,15 +16,15 @@ export function getBnbPriceInUSD(): BigDecimal {
     let totalLiquidityBNB = busdPair.reserve0.plus(usdtPair.reserve1);
     if (totalLiquidityBNB.notEqual(ZERO_BD)) {
       let busdWeight = busdPair.reserve0.div(totalLiquidityBNB);
-
-      return busdPair.token1Price.times(busdWeight);
+      let usdtWeight = usdtPair.reserve1.div(totalLiquidityBNB);
+      return busdPair.token1Price.times(busdWeight).plus(usdtPair.token0Price.times(usdtWeight));
     } else {
       return ZERO_BD;
     }
   } else if (busdPair !== null) {
     return busdPair.token1Price;
   } else if (usdtPair !== null) {
-    return usdtPair.token1Price;
+    return usdtPair.token0Price;
   } else {
     return ZERO_BD;
   }
@@ -46,22 +46,28 @@ let MINIMUM_LIQUIDITY_THRESHOLD_BNB = BigDecimal.fromString("10");
  * Search through graph to find derived BNB per token.
  * @todo update to be derived BNB (add stablecoin estimates)
  **/
-export function findBnbPerToken(token: Token): BigDecimal {
+export function findBnbPerToken(token: Token, blockNumber: BigInt): BigDecimal {
   if (token.id == WBNB_ADDRESS) {
     return ONE_BD;
   }
   // loop through whitelist and check if paired with any
   for (let i = 0; i < WHITELIST.length; ++i) {
-    let pairAddress = factoryContract.getPair(Address.fromString(token.id), Address.fromString(WHITELIST[i]));
-    if (pairAddress.toHex() != ADDRESS_ZERO) {
-      let pair = Pair.load(pairAddress.toHex());
-      if (pair.token0 == token.id && pair.reserveBNB.gt(MINIMUM_LIQUIDITY_THRESHOLD_BNB)) {
-        let token1 = Token.load(pair.token1);
-        return pair.token1Price.times(token1.derivedBNB as BigDecimal); // return token1 per our token * BNB per token 1
-      }
-      if (pair.token1 == token.id && pair.reserveBNB.gt(MINIMUM_LIQUIDITY_THRESHOLD_BNB)) {
-        let token0 = Token.load(pair.token0);
-        return pair.token0Price.times(token0.derivedBNB as BigDecimal); // return token0 per our token * BNB per token 0
+    let call = factoryContract.try_getPair(Address.fromString(token.id), Address.fromString(WHITELIST[i]));
+    if (call.reverted) {
+      log.warning("Pair not found for token {} reverted block {} whitelist {}", [token.id, blockNumber.toString(), WHITELIST[i].toString()]);
+    }
+    else {
+      let pairAddress = call.value;;
+      if (pairAddress.toHex() != ADDRESS_ZERO) {
+        let pair = Pair.load(pairAddress.toHex());
+        if (pair.token0 == token.id && pair.reserveBNB.gt(MINIMUM_LIQUIDITY_THRESHOLD_BNB)) {
+          let token1 = Token.load(pair.token1);
+          return pair.token1Price.times(token1.derivedBNB as BigDecimal); // return token1 per our token * BNB per token 1
+        }
+        if (pair.token1 == token.id && pair.reserveBNB.gt(MINIMUM_LIQUIDITY_THRESHOLD_BNB)) {
+          let token0 = Token.load(pair.token0);
+          return pair.token0Price.times(token0.derivedBNB as BigDecimal); // return token0 per our token * BNB per token 0
+        }
       }
     }
   }
