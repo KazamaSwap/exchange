@@ -8,6 +8,10 @@ import { Factory as FactoryContract } from "../../generated/templates/Pair/Facto
 export let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export let FACTORY_ADDRESS = "0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc";
 
+export let WBNB_ADDRESS = "0xae13d989dac2f0debff460ac112a837c89baa7cd";
+export let USDT_ADDRESS = "0x7ef95a0fee0dd31b22626fa2e10ee6a223f8a684";
+export let BTC_ADDRESS = "0x6ce8da28e2f864420840cf74474eff5fd80e65b8";
+
 export let ZERO_BI = BigInt.fromI32(0);
 export let ONE_BI = BigInt.fromI32(1);
 export let ZERO_BD = BigDecimal.fromString("0");
@@ -51,6 +55,15 @@ export function fetchTokenSymbol(tokenAddress: Address): string {
   } else {
     symbolValue = symbolResult.value;
   }
+  if (tokenAddress == Address.fromString(WBNB_ADDRESS)) {
+    symbolValue = "WBNB"
+  }
+  if (tokenAddress == Address.fromString(USDT_ADDRESS)) {
+    symbolValue = "USDT"
+  }
+  if (tokenAddress == Address.fromString(BTC_ADDRESS)) {
+    symbolValue = "BTCB"
+  }
   return symbolValue;
 }
 
@@ -70,15 +83,29 @@ export function fetchTokenName(tokenAddress: Address): string {
   } else {
     nameValue = nameResult.value;
   }
+  if (tokenAddress == Address.fromString(WBNB_ADDRESS)) {
+    nameValue = "Wrapped BNB"
+  }
+  if (tokenAddress == Address.fromString(USDT_ADDRESS)) {
+    nameValue = "Tether USD"
+  }
+  if (tokenAddress == Address.fromString(BTC_ADDRESS)) {
+    nameValue = "BTCB Token"
+  }
   return nameValue;
 }
 
 export function fetchTokenDecimals(tokenAddress: Address): BigInt {
-  let contract = ERC20.bind(tokenAddress);
-  let decimalValue = null;
-  let decimalResult = contract.try_decimals();
-  if (!decimalResult.reverted) {
-    decimalValue = decimalResult.value;
+  if (tokenAddress == Address.fromString(WBNB_ADDRESS) || tokenAddress == Address.fromString(USDT_ADDRESS) || tokenAddress == Address.fromString(BTC_ADDRESS)) {
+    let decimalValue = 18;
+    return BigInt.fromI32(decimalValue as i32);
+  } else {
+    let contract = ERC20.bind(tokenAddress);
+    let decimalValue = null;
+    let decimalResult = contract.try_decimals();
+    if (!decimalResult.reverted) {
+      decimalValue = decimalResult.value;
+    }
+    return BigInt.fromI32(decimalValue as i32);
   }
-  return BigInt.fromI32(decimalValue as i32);
 }
