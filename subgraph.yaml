@@ -8,7 +8,7 @@ dataSources:
     name: Factory
     network: chapel
     source:
-      address: '0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc'
+      address: '0xb7926c0430afb07aa7defde6da862ae0bde767bc'
       abi: Factory
       startBlock: 7142050
     mapping:

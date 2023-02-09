@@ -4,8 +4,8 @@ import { Pair, Token, Bundle } from "../generated/schema";
 import { ZERO_BD, factoryContract, ADDRESS_ZERO, ONE_BD } from "./utils";
 
 let WBNB_ADDRESS = "0xae13d989dac2f0debff460ac112a837c89baa7cd";
-let BUSD_WBNB_PAIR = "0xe0e92035077c39594793e61802a350347c320cf2"; // created block 589414
-let USDT_WBNB_PAIR = "0xf855e52ecc8b3b795ac289f85f6fd7a99883492b"; // created block 648115
+let BUSD_WBNB_PAIR = "0xe0e92035077c39594793e61802a350347c320cf2"; // created block 7283522
+let USDT_WBNB_PAIR = "0xf855e52ecc8b3b795ac289f85f6fd7a99883492b"; // created block 7142734
 
 export function getBnbPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
@@ -16,15 +16,15 @@ export function getBnbPriceInUSD(): BigDecimal {
     let totalLiquidityBNB = busdPair.reserve0.plus(usdtPair.reserve1);
     if (totalLiquidityBNB.notEqual(ZERO_BD)) {
       let busdWeight = busdPair.reserve0.div(totalLiquidityBNB);
-      let usdtWeight = usdtPair.reserve1.div(totalLiquidityBNB);
-      return busdPair.token1Price.times(busdWeight).plus(usdtPair.token0Price.times(usdtWeight));
+
+      return busdPair.token1Price.times(busdWeight);
     } else {
       return ZERO_BD;
     }
   } else if (busdPair !== null) {
     return busdPair.token1Price;
   } else if (usdtPair !== null) {
-    return usdtPair.token0Price;
+    return usdtPair.token1Price;
   } else {
     return ZERO_BD;
   }
@@ -35,6 +35,8 @@ let WHITELIST: string[] = [
   "0xae13d989dac2f0debff460ac112a837c89baa7cd", // WBNB
   "0x78867bbeef44f2326bf8ddd1941a4439382ef2a7", // BUSD
   "0x7ef95a0fee0dd31b22626fa2e10ee6a223f8a684", // USDT
+  "0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8", // BTCB
+  "0x8BaBbB98678facC7342735486C851ABD7A0d17Ca", // ETH Token
 ];
 
 // minimum liquidity for price to get tracked
